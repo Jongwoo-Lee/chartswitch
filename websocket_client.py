@@ -1,8 +1,5 @@
 import websocket
 import json
-import time
-import atexit
-
 from config import BINANCE_WS_URL, BINANCE_WS_URL, BINANCE_WS_THREAD_NAME
 
 
