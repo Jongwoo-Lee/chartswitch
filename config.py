@@ -4,5 +4,5 @@ BINANCE_WS_THREAD_NAME = "BinanceWebSocketThread_"
 
 
 SYMBOL_NUM = 2
-INTERVALS = ["5m"] # ["1m","5m","15m","1h","4h","1d"]
+INTERVALS = ["1m"] # ["1m","5m","15m","1h","4h","1d"]
 UPDATE_INTERVAL = 3600  # 1 hour in seconds

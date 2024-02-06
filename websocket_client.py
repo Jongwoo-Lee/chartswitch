@@ -1,12 +1,7 @@
 import websocket
 import json
-from config import BINANCE_WS_URL, BINANCE_WS_URL, BINANCE_WS_THREAD_NAME
-
-
-def on_message(socket_url, result):
-    message = json.loads(result)
-    print(f"Received Message from {socket_url}:")
-    print(message)
+from config import BINANCE_WS_URL, BINANCE_WS_URL
+from compare_price import prepare_compare
 
 def create_socket(symbols, interval, stop_event):
     print(f"Starting thread for interval: {interval}")
@@ -30,7 +25,7 @@ def create_socket(symbols, interval, stop_event):
             # Receive WebSocket message with a timeout
             result = ws.recv()
             if result:
-                on_message(socket_url, result)
+                prepare_compare(symbols, interval, json.loads(result))
 
         except websocket.WebSocketTimeoutException as e:
             # Timeout occurred, no data received, continue to check stop_event

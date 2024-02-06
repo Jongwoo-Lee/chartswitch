@@ -6,7 +6,7 @@ from binance_api import fetch_top_symbols
 from thread_manager import ThreadManager
 from config import INTERVALS, UPDATE_INTERVAL, SYMBOL_NUM
 
-def main(thread_manager: ThreadManager):
+def start_main(thread_manager: ThreadManager):
     try:
         while True:
             top_10_symbols = fetch_top_symbols(n=SYMBOL_NUM)  # Assuming fetch_top_symbols takes 'n' as an argument
@@ -45,4 +45,4 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    main(thread_manager)
+    start_main(thread_manager)
