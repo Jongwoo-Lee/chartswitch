@@ -3,24 +3,31 @@ import atexit
 import signal
 import sys
 from binance_api import fetch_top_symbols
-from thread_manager import ThreadManager
+from manager.thread_manager import ThreadManager
+from manager.price_manager import PriceManager
 from config import INTERVALS, UPDATE_INTERVAL, SYMBOL_NUM
 
-def start_main(thread_manager: ThreadManager):
+def start_main():
+    
+    # Create a global instance of the class
+    thread_manager = ThreadManager()
+    price_manager = PriceManager()
+
     try:
         while True:
-            top_10_symbols = fetch_top_symbols(n=SYMBOL_NUM)  # Assuming fetch_top_symbols takes 'n' as an argument
-            if top_10_symbols:
-                print("Top 10 symbols by daily volume:", top_10_symbols)
+            top_symbols = fetch_top_symbols(n=SYMBOL_NUM)  # Assuming fetch_top_symbols takes 'n' as an argument
+            if top_symbols:
+                print(f"Top {SYMBOL_NUM} symbols by daily volume: {top_symbols}")
 
                 # Use ThreadManager to start threads
-                thread_manager.start_websocket_threads(top_10_symbols, INTERVALS)
+                thread_manager.start_websocket_threads(top_symbols, INTERVALS)
 
                 # Wait for the update interval
                 time.sleep(UPDATE_INTERVAL)
 
                 # Use ThreadManager to stop threads
                 thread_manager.stop_websocket_threads()
+                price_manager.partial_cleanup()
 
             else:
                 print("Failed to fetch top symbols")
@@ -33,16 +40,17 @@ def start_main(thread_manager: ThreadManager):
 
 def signal_handler(sig, frame):
     print('Received shutdown signal. Shutting down gracefully.')
-    thread_manager.cleanup()
+    ThreadManager().cleanup()
     sys.exit(0)
-
 
 if __name__ == "__main__":
     # Register the cleanup function of ThreadManager to be called on exit
     thread_manager = ThreadManager()
+    price_manager = PriceManager()
     
     atexit.register(thread_manager.cleanup)
+    atexit.register(price_manager.cleanup)
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    start_main(thread_manager)
+    start_main()

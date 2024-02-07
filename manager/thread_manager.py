@@ -5,10 +5,21 @@ from config import BINANCE_WS_THREAD_NAME
 
 
 class ThreadManager:
-    def __init__(self):
-        self.threads: List[threading.Thread] = []
-        self.stop_events: List[threading.Event] = []
+    _instance = None
+    _lock = threading.Lock()  # Class-level lock
+    _is_initialized = False  # Flag to check if the instance has been initialized
 
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(ThreadManager, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def __init__(self):
+        if not self.__class__._is_initialized:
+            print("Thread manager: initializing the threads.")
+            self.threads: List[threading.Thread] = []
+            self.stop_events: List[threading.Event] = []
+            self.__class__._is_initialized = True  # Set the flag indicating initialization is done
 
     def start_websocket_threads(self, symbols, intervals):
         for interval in intervals:
@@ -27,12 +38,12 @@ class ThreadManager:
             thread.join(timeout=5)
 
     def cleanup(self):
-        print("Cleaning up and stopping threads...")
+        print("Thread manager: Cleaning up and stopping threads...")
         self.stop_websocket_threads()
 
         for thread in self.threads:  # Use self to refer to the instance variable
             if thread.is_alive():
                 print(f"Warning: Thread {thread.name} did not terminate")
                 
-        print("Clean up done")
+        print("Thread manager: Clean up done")
         

@@ -1,10 +1,11 @@
 import websocket
 import json
 from config import BINANCE_WS_URL, BINANCE_WS_URL
-from compare_price import prepare_compare
+from manager.price_manager import PriceManager
 
 def create_socket(symbols, interval, stop_event):
     print(f"Starting thread for interval: {interval}")
+    pm = PriceManager()
 
     combined_streams = "/".join([f"{symbol.lower()}@kline_{interval}" for symbol in symbols])
     socket_url = f"{BINANCE_WS_URL}?streams={combined_streams}"
@@ -25,7 +26,8 @@ def create_socket(symbols, interval, stop_event):
             # Receive WebSocket message with a timeout
             result = ws.recv()
             if result:
-                prepare_compare(symbols, interval, json.loads(result))
+                data = json.loads(result)
+                pm.update_price(data)
 
         except websocket.WebSocketTimeoutException as e:
             # Timeout occurred, no data received, continue to check stop_event

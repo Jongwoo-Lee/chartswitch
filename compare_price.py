@@ -7,9 +7,9 @@ def prepare_compare(symbols, interval, data):
         
         stream = data['data']
         symbol = data['data']['s']
-        event_at = datetime.fromtimestamp(stream['E']/1000)
-        start_at = datetime.fromtimestamp(stream['k']['t']/1000)
-        close_at = datetime.fromtimestamp(stream['k']['T']/1000)
+        event_ts = datetime.fromtimestamp(stream['E']/1000)
+        start_ts = datetime.fromtimestamp(stream['k']['t']/1000)
+        close_ts = datetime.fromtimestamp(stream['k']['T']/1000)
         
         open_price = float(stream['k']['o'])
         close_price = float(stream['k']['c'])
@@ -19,7 +19,7 @@ def prepare_compare(symbols, interval, data):
         is_closed = stream['k']['x']
     
         if is_closed:
-            print(f"{symbol} is closed {stream['k']['x']}, start at {start_at}, event at {event_at}, close at {close_at}")
+            print(f"{symbol} is closed {stream['k']['x']}, start at {start_ts}, event at {event_ts}, close at {close_ts}")
             
             # Update prices
             prices[symbol]["open"] = open_price
@@ -27,8 +27,6 @@ def prepare_compare(symbols, interval, data):
             prices[symbol]["high"] = high_price
             prices[symbol]["low"] = low_price
     
-            print(prices)
-            
             # Once both symbols have closing prices, compare changes
             if all(prices[sym]["close"] for sym in symbols):
                 compare_changes(prices)
