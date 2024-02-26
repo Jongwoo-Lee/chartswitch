@@ -1,0 +1,9 @@
+datetime==5.4
+jupyter==1.0.0
+notebook==7.1.0
+numpy==1.26.4
+pandas==2.2.1
+pip==24.0
+requests==2.31.0
+websocket==0.2.1
+websocket_client==1.7.0
