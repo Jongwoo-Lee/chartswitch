@@ -1,16 +1,16 @@
-import time
+import asyncio
 import atexit
 import signal
 import sys
 from binance_api import fetch_top_symbols
-from manager.thread_manager import ThreadManager
+from manager.websocket_manager import WebsocketManager
 from manager.price_manager import PriceManager
 from config import INTERVALS, UPDATE_INTERVAL, SYMBOL_NUM
 
-def start_main():
+async def start_main():
     
     # Create a global instance of the class
-    thread_manager = ThreadManager()
+    ws_manager = WebsocketManager()
     price_manager = PriceManager()
 
     try:
@@ -20,13 +20,12 @@ def start_main():
                 print(f"Top {SYMBOL_NUM} symbols by daily volume: {top_symbols}")
 
                 # Use ThreadManager to start threads
-                thread_manager.start_websocket_threads(top_symbols, INTERVALS)
+                await ws_manager.start_websockets(top_symbols, INTERVALS)
 
                 # Wait for the update interval
-                time.sleep(UPDATE_INTERVAL)
+                await asyncio.sleep(UPDATE_INTERVAL)
 
                 # Use ThreadManager to stop threads
-                thread_manager.stop_websocket_threads()
                 price_manager.partial_cleanup()
 
             else:
@@ -38,19 +37,11 @@ def start_main():
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def signal_handler(sig, frame):
-    print('Received shutdown signal. Shutting down gracefully.')
-    ThreadManager().cleanup()
-    sys.exit(0)
-
 if __name__ == "__main__":
     # Register the cleanup function of ThreadManager to be called on exit
-    thread_manager = ThreadManager()
+    ws_manager = WebsocketManager()
     price_manager = PriceManager()
     
-    atexit.register(thread_manager.cleanup)
     atexit.register(price_manager.cleanup)
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
 
-    start_main()
+    asyncio.run(start_main())

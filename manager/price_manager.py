@@ -6,7 +6,6 @@ class PriceManager:
     _lock = Lock()  # Class-level lock
     _is_initialized = False  # Flag to check if the instance has been initialized
 
-
     def __new__(cls, *args, **kwargs):
         with cls._lock:
             if not cls._instance:
@@ -25,31 +24,32 @@ class PriceManager:
             self.__class__._is_initialized = True  # Set the flag indicating initialization is done
 
     def update_price(self, data):
-        if 'data' in data and 'k' in data['data']:
-            stream = data['data']
-            symbol = stream['s']
-            interval = stream['k']['i']
+        with self._lock: 
+            if 'data' in data and 'k' in data['data']:
+                stream = data['data']
+                symbol = stream['s']
+                interval = stream['k']['i']
 
-            event_ts = pd.to_datetime(stream['E'], unit='ms')
-            start_ts = pd.to_datetime(stream['k']['t'], unit='ms')
-            close_ts = pd.to_datetime(stream['k']['T'], unit='ms')
+                event_ts = pd.to_datetime(stream['E'], unit='ms')
+                start_ts = pd.to_datetime(stream['k']['t'], unit='ms')
+                close_ts = pd.to_datetime(stream['k']['T'], unit='ms')
 
-            open_price = float(stream['k']['o'])
-            close_price = float(stream['k']['c'])
-            high_price = float(stream['k']['h'])
-            low_price = float(stream['k']['l'])
-            
-            is_closed = stream['k']['x']
+                open_price = float(stream['k']['o'])
+                close_price = float(stream['k']['c'])
+                high_price = float(stream['k']['h'])
+                low_price = float(stream['k']['l'])
+                
+                is_closed = stream['k']['x']
 
-            new_entry = {
-                'symbol': symbol, 'interval': interval,
-                'event_ts': event_ts, 'open_ts': start_ts, 'close_ts': close_ts, 
-                'open_price': open_price, 'close_price': close_price, 'high_price': high_price, 'low_price': low_price, 
-                'is_closed': is_closed
-            }
+                new_entry = {
+                    'symbol': symbol, 'interval': interval,
+                    'event_ts': event_ts, 'open_ts': start_ts, 'close_ts': close_ts, 
+                    'open_price': open_price, 'close_price': close_price, 'high_price': high_price, 'low_price': low_price, 
+                    'is_closed': is_closed
+                }
 
-            self.price_data = pd.concat([self.price_data, pd.DataFrame([new_entry])], ignore_index=True)
-            print(f"Price manager: updated price data for {symbol} with interval {interval} at {event_ts}.")
+                self.price_data = pd.concat([self.price_data, pd.DataFrame([new_entry])], ignore_index=True)
+                print(f"Price manager: updated price data for {symbol} with interval {interval} at {event_ts}.")
 
     def partial_cleanup(self):
         # Keeps only the last 'hours' of data for the specified interval.
