@@ -1,6 +1,6 @@
 import asyncio
-from websocket_client import create_socket
-from manager.price_manager import PriceManager
+from api import create_socket
+from manager import PriceManager
 
 class WebsocketManager:
     _instance = None

@@ -3,7 +3,7 @@ import websocket
 import websockets
 import json
 from config import BINANCE_WS_URL, BINANCE_WS_URL
-from manager.price_manager import PriceManager
+from manager import PriceManager
 
 async def create_socket(symbols, interval, pm: PriceManager):
     print(f"Starting asynchronous client for interval: {interval}")

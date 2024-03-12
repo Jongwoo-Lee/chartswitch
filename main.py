@@ -1,13 +1,10 @@
 import asyncio
 import atexit
-import signal
-import sys
-from binance_api import fetch_top_symbols
-from manager.websocket_manager import WebsocketManager
-from manager.price_manager import PriceManager
+from manager import WebsocketManager, PriceManager
+from api import fetch_top_symbols
 from config import INTERVALS, UPDATE_INTERVAL, SYMBOL_NUM
 
-async def start_main():
+async def main():
     
     # Create a global instance of the class
     ws_manager = WebsocketManager()
@@ -44,4 +41,4 @@ if __name__ == "__main__":
     
     atexit.register(price_manager.cleanup)
 
-    asyncio.run(start_main())
+    asyncio.run(main())
