@@ -1,6 +1,7 @@
 import asyncio
 from api import create_socket
 from manager import PriceManager
+from config import logger
 
 class WebsocketManager:
     _instance = None
@@ -13,11 +14,20 @@ class WebsocketManager:
 
     def __init__(self):
         if not self.__class__._is_initialized:
-            print("Thread manager: initializing the threads.")
+            logger.debug("Websocket Manager: initializing the websockets.")
             self.__class__._is_initialized = True  # Set the flag indicating initialization is done
 
     async def start_websockets(self, symbols, intervals):
         tasks = []
         for interval in intervals:
-            tasks.append(asyncio.create_task(create_socket(symbols, interval, PriceManager())))
+            tasks.append(
+                asyncio.create_task(
+                    create_socket(symbols, interval, PriceManager())
+                )
+            )
         await asyncio.gather(*tasks)
+
+    def cleanup(self):
+        # Implement cleanup logic here, such as closing connections
+        logger.debug("Websocket Manager: clean up done.")
+        pass
