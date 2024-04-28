@@ -1,6 +1,6 @@
 import asyncio
 from api import create_socket
-from manager import PriceManager
+from app import PriceManager
 from config import logger
 
 class WebsocketManager:
@@ -25,7 +25,9 @@ class WebsocketManager:
                     create_socket(symbols, interval, PriceManager())
                 )
             )
+        
         await asyncio.gather(*tasks)
+        print("asyncio gather done")
 
     def cleanup(self):
         # Implement cleanup logic here, such as closing connections
