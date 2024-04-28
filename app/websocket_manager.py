@@ -6,6 +6,9 @@ from config import logger
 class WebsocketManager:
     _instance = None
     _is_initialized = False  # Flag to check if the instance has been initialized
+    
+    # Global event to signal WebSocket thread to stop
+    stop_event = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -15,21 +18,25 @@ class WebsocketManager:
     def __init__(self):
         if not self.__class__._is_initialized:
             logger.debug("Websocket Manager: initializing the websockets.")
-            self.__class__._is_initialized = True  # Set the flag indicating initialization is done
+            self.stop_event = asyncio.Event()
+
+            # Set the flag indicating initialization is done
+            self.__class__._is_initialized = True  
 
     async def start_websockets(self, symbols, intervals):
         tasks = []
         for interval in intervals:
             tasks.append(
                 asyncio.create_task(
-                    create_socket(symbols, interval, PriceManager())
+                    create_socket(symbols, interval, self.stop_event, PriceManager())
                 )
             )
         
         await asyncio.gather(*tasks)
-        print("asyncio gather done")
 
     def cleanup(self):
         # Implement cleanup logic here, such as closing connections
+        self.stop_event.set()
+
         logger.debug("Websocket Manager: clean up done.")
         pass

@@ -8,26 +8,29 @@ from app import WebsocketManager, PriceManager, start_websocket_thread
 
 def signal_handler(sig, frame):
     logger.debug("SIGINT received. Shutting down gracefully...")
+    
+    WebsocketManager().cleanup
+    PriceManager().cleanup
+    
     sys.exit(0)
 
 def main():
-    start_websocket_thread()
+    # Initiate Threads
+    ws_thread = start_websocket_thread()
+    
+    # Register the cleanup functions to be called on exit
+    atexit.register(WebsocketManager().cleanup)
+    atexit.register(PriceManager().cleanup)
+    
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     while True:
         print("Main thread is doing other work...")
-        # Perform other tasks synchronously or asynchronously
-        time.sleep(10)  # Example of asynchronous task in the main thread
+        time.sleep(10)
 
 if __name__ == "__main__":
     logger.debug("!! Starting new Chartswitch !!")
-
-    # Initiate Global Singleton Classes
-    ws_manager = WebsocketManager()
-    price_manager = PriceManager()
-    
-    # Register the cleanup functions to be called on exit
-    signal.signal(signal.SIGINT, signal_handler)
-    atexit.register(price_manager.cleanup)
-    atexit.register(ws_manager.cleanup)
 
     # Start main
     main()

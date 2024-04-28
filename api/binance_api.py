@@ -1,5 +1,5 @@
 import requests
-from config import BINANCE_24HR_TICKER_API
+from config import logger, BINANCE_24HR_TICKER_API
 
 def fetch_top_symbols(n=10):
     response = requests.get(BINANCE_24HR_TICKER_API)
@@ -12,6 +12,8 @@ def fetch_top_symbols(n=10):
         # Sort symbols by quote volume
         sorted_symbols = sorted(usdt_symbols, key=lambda x: float(x['quoteVolume']), reverse=True)
         top_symbols = [item['symbol'] for item in sorted_symbols[:n]]
+
+        logger.info(f"Top {n} symbols by daily volume: {top_symbols}")
         return top_symbols
     else:
         print("Error fetching market data")
