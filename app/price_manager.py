@@ -49,7 +49,6 @@ class PriceManager:
                 self.price_data = new_df
             else:
                 self.price_data = pd.concat([self.price_data, new_df], ignore_index=True)
-            logger.info(f"Price manager: updated price data for {symbol} with interval {interval} at {event_ts}.")
 
     def partial_cleanup(self):
         # Keeps only the last 'hours' of data for the specified interval.

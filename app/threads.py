@@ -15,6 +15,7 @@ def run_websocket(event: threading.Event):
     asyncio.run(websocket_loop())
 
     # Rest of the clean up after websocket thread
+    print("rest of the clean up")
     event.set()
 
 async def websocket_loop():
