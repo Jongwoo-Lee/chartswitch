@@ -10,7 +10,7 @@ UPDATE_INTERVAL = 3600  # 1 hour in seconds
 # Configure the logging system
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s [%(levelname)s] [%(name)s]: %(message)s",
+    format="%(asctime)s [%(levelname)s] [%(name)s] %(funcName)s : %(message)s",
     filename="app.log",
     filemode="a"
 )

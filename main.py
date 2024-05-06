@@ -2,35 +2,40 @@ import sys
 import time
 import atexit
 import signal
+import threading
 
 from config import logger
-from app import WebsocketManager, PriceManager, start_websocket_thread
+from app import WebsocketManager, start_websocket_thread
+
+websocket_event = threading.Event()
+price_thread_event = threading.Event()
 
 def signal_handler(sig, frame):
-    logger.debug("SIGINT received. Shutting down gracefully...")
-    
-    WebsocketManager().cleanup
-    PriceManager().cleanup
-    
-    sys.exit(0)
+    logger.debug(f"Signal {sig} received. Shutting down gracefully...")
+    print(f"Signal {sig} received. Shutting down gracefully...")
+
+    WebsocketManager().cleanup()
+
 
 def main():
-    # Initiate Threads
-    ws_thread = start_websocket_thread()
-    
     # Register the cleanup functions to be called on exit
-    atexit.register(WebsocketManager().cleanup)
-    atexit.register(PriceManager().cleanup)
-    
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    while True:
-        print("Main thread is doing other work...")
-        time.sleep(10)
+    # Initiate Threads
+    start_websocket_thread(websocket_event)
+
+    # Do Some Price Calculation
+
+    websocket_event.wait()
+    logger.debug("Websocket threads are closed successfully")
+    
+    logger.debug("Exiting main...")
+    print("Exiting main...")
+
 
 if __name__ == "__main__":
-    logger.debug("!! Starting new Chartswitch !!")
+    logger.debug("############## Starting new Chartswitch ##############")
 
     # Start main
     main()

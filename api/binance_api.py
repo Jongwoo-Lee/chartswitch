@@ -16,5 +16,5 @@ def fetch_top_symbols(n=10):
         logger.info(f"Top {n} symbols by daily volume: {top_symbols}")
         return top_symbols
     else:
-        print("Error fetching market data")
+        logger.error(f"Error fetching market data - Status code: {response.status_code}")
         return []
