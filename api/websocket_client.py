@@ -7,7 +7,7 @@ from app import PriceManager
 
 async def create_socket(symbols, interval, stop_event: Event, pm: PriceManager):
     try:
-        await connect_socket(symbols, interval, stop_event, pm)
+        await connect_socket_and_write(symbols, interval, stop_event, pm)
     
     except websockets.ConnectionClosed as e:
         if e.code == 1000:
@@ -20,7 +20,7 @@ async def create_socket(symbols, interval, stop_event: Event, pm: PriceManager):
         logger.error(f"WebSocket Unexpected Error: {e}") 
         raise
 
-async def connect_socket(symbols, interval, stop_event: Event, pm: PriceManager):
+async def connect_socket_and_write(symbols, interval, stop_event: Event, pm: PriceManager):
     logger.debug(f"Starting asynchronous client for interval: {interval}")
     
     combined_streams = "/".join([f"{symbol.lower()}@kline_{interval}" for symbol in symbols])
