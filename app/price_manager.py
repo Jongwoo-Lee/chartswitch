@@ -17,7 +17,7 @@ class PriceManager:
             self.price_data = pd.DataFrame(columns=[
                 'symbol', 'interval', 'event_ts', 'open_ts', 'close_ts', 
                 'open_price', 'close_price', 'high_price', 'low_price', 
-                'is_closed'])
+                'is_closed', 'pct_change', 'abs_pct_change', 'rolling_sum'])
             
             self.price_data['is_closed'] = self.price_data['is_closed'].astype(bool)
 
@@ -27,48 +27,44 @@ class PriceManager:
             self.previous_prices = {}
 
             self.__class__._is_initialized = True  # Set the flag indicating initialization is done
-
-    def reset_symbols(self, symbols):
-        for symbol in symbols:
-            self.rolling_sums[symbol] = 0
-            self.price_deques_100[symbol] = deque(maxlen=100)
-            self.previous_prices[symbol] = None
-
-        return symbols
-
+    
     def update_price(self, data):
         if 'data' in data and 'k' in data['data']:
-            stream = data['data']
-            symbol = stream['s']
-            interval = stream['k']['i']
-
-            event_ts = pd.to_datetime(stream['E'], unit='ms')
-            start_ts = pd.to_datetime(stream['k']['t'], unit='ms')
-            close_ts = pd.to_datetime(stream['k']['T'], unit='ms')
-
-            open_price = float(stream['k']['o'])
-            close_price = float(stream['k']['c'])
-            high_price = float(stream['k']['h'])
-            low_price = float(stream['k']['l'])
+            new_series = self.make_price_series(data['data'])
             
-            is_closed = stream['k']['x']
+            if not self.price_data.empty:
+                self.calculate_price_change(new_series)
+            
+            self.price_data = pd.concat([self.price_data, new_series], ignore_index=True)
 
-            new_df = pd.DataFrame([{
+    def make_price_series(self, stream):
+        symbol = stream['s']
+        interval = stream['k']['i']
+
+        event_ts = pd.to_datetime(stream['E'], unit='ms')
+        start_ts = pd.to_datetime(stream['k']['t'], unit='ms')
+        close_ts = pd.to_datetime(stream['k']['T'], unit='ms')
+
+        open_price = float(stream['k']['o'])
+        close_price = float(stream['k']['c'])
+        high_price = float(stream['k']['h'])
+        low_price = float(stream['k']['l'])
+        
+        is_closed = stream['k']['x']
+
+        new_series = pd.Series({
                 'symbol': symbol, 'interval': interval,
                 'event_ts': event_ts, 'open_ts': start_ts, 'close_ts': close_ts, 
                 'open_price': open_price, 'close_price': close_price, 'high_price': high_price, 'low_price': low_price, 
-                'is_closed': is_closed
-            }])
+                'is_closed': is_closed, 'pct_change': 0, 'abs_pct_change': 0, 'rolling_sum': 0
+            })
 
-            if self.price_data.empty:
-                self.price_data = new_df
-            else:
-                self.price_data = pd.concat([self.price_data, new_df], ignore_index=True)
+        return new_series
 
-    def partial_cleanup(self):
-        # Keeps only the last 'hours' of data for the specified interval.
-        threshold = pd.to_datetime('now') - pd.Timedelta(hours=1)
-        self.price_data = self.price_data[(self.price_data['event_ts'] > threshold) | (self.price_data['interval'] != "1m")]
+    def calculate_price_change(self, series: pd.Series):
+        if 'symbol' in series.index and pd.notna(series['symbol']):
+            symbol = series['symbol']
+            print(symbol)
 
     def compare_most_recent_prices(self):
         if not self.price_data.empty:
@@ -77,6 +73,20 @@ class PriceManager:
         else:
             return pd.DataFrame()  # Return an empty DataFrame if there's no data
         
+    def reset_symbols(self, symbols):
+        for symbol in symbols:
+            self.rolling_sums[symbol] = 0
+            self.price_deques_100[symbol] = deque(maxlen=100)
+            self.previous_prices[symbol] = None
+
+        return symbols
+
+    def hourly_cleanup(self):
+        # Keeps only the last 'hours' of data for the specified interval.
+        threshold = pd.to_datetime('now') - pd.Timedelta(hours=1)
+        self.price_data = self.price_data[(self.price_data['event_ts'] > threshold) | (self.price_data['interval'] != "1m")]
+
+
     def cleanup(self):
         # Implement cleanup logic here, such as closing connections
         self.price_data = None
