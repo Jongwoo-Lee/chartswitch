@@ -26,6 +26,8 @@ async def connect_socket_and_write(symbols, interval, stop_event: Event, pm: Pri
     combined_streams = "/".join([f"{symbol.lower()}@kline_{interval}" for symbol in symbols])
     socket_url = f"{BINANCE_WS_URL}?streams={combined_streams}"
     
+    pm.reset_symbols(symbols)
+
     async with websockets.connect(socket_url) as ws:
         subscribe_message =  {
             "method": "SUBSCRIBE",
@@ -34,7 +36,7 @@ async def connect_socket_and_write(symbols, interval, stop_event: Event, pm: Pri
         }
 
         await ws.send(json.dumps(subscribe_message))
-
+        
         async for message in ws:
             if stop_event.is_set():
                 await ws.close()

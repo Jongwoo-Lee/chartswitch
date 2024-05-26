@@ -1,9 +1,8 @@
 import asyncio
-import time
 from typing import List
 from api import create_socket
 from app import PriceManager
-from config import logger
+from config import logger, INTERVALS
 
 class WebsocketManager:
     _instance = None
@@ -25,11 +24,11 @@ class WebsocketManager:
             # Set the flag indicating initialization is done
             self.__class__._is_initialized = True  
 
-    async def start_websockets(self, symbols, intervals):
-        
+    async def start_websockets(self, symbols):
         tasks: List[asyncio.Task] = []
-        for interval in intervals:
+        for interval in INTERVALS:
             logger.debug(f"Creating websockets coroutines for {interval} intervak price updates")
+
             tasks.append(
                 asyncio.create_task(
                     create_socket(symbols, interval, self.stop_event, PriceManager())

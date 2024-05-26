@@ -1,8 +1,9 @@
 import signal
 import threading
+import time
 
 from config import logger
-from app import WebsocketManager, start_websocket_thread, price_plot
+from app import WebsocketManager, start_websocket_thread
 
 websocket_event = threading.Event()
 price_thread_event = threading.Event()
@@ -24,8 +25,8 @@ def main():
 
     # Do Some Price Calculation
     while not websocket_event.is_set():
-        price_plot().show()
-
+        print("do nothing")
+        time.sleep(4)
     websocket_event.wait()
     logger.debug("Websocket threads are closed successfully")
     

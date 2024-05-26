@@ -1,5 +1,6 @@
 import pandas as pd
 from config import logger
+from collections import deque
 
 class PriceManager:
     _instance = None
@@ -19,7 +20,21 @@ class PriceManager:
                 'is_closed'])
             
             self.price_data['is_closed'] = self.price_data['is_closed'].astype(bool)
+
+            # Initialize state dictionaries
+            self.rolling_sums = {}
+            self.price_deques_100 = {}
+            self.previous_prices = {}
+
             self.__class__._is_initialized = True  # Set the flag indicating initialization is done
+
+    def reset_symbols(self, symbols):
+        for symbol in symbols:
+            self.rolling_sums[symbol] = 0
+            self.price_deques_100[symbol] = deque(maxlen=100)
+            self.previous_prices[symbol] = None
+
+        return symbols
 
     def update_price(self, data):
         if 'data' in data and 'k' in data['data']:
@@ -65,5 +80,8 @@ class PriceManager:
     def cleanup(self):
         # Implement cleanup logic here, such as closing connections
         self.price_data = None
+        self.rolling_sums = None
+        self.price_deques_100 = None
+        self.previous_prices = None
         logger.debug("Price manager: clean up done.")
         pass

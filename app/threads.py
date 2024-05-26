@@ -1,10 +1,8 @@
 import threading
 import asyncio
 
-from config import logger, SYMBOL_NUM, INTERVALS
-from app import WebsocketManager, PriceManager
+from app import WebsocketManager 
 from api import fetch_top_symbols
-
 
 def start_websocket_thread(event: threading.Event):
     ws_thread = threading.Thread(target=run_websocket, args=(event,))
@@ -19,8 +17,7 @@ def run_websocket(event: threading.Event):
     event.set()
 
 async def websocket_loop():
+
+    symbols = fetch_top_symbols(4)
     # Start websocket loops
-    await WebsocketManager().start_websockets(
-        fetch_top_symbols(n=SYMBOL_NUM), 
-        INTERVALS
-    )
+    await WebsocketManager().start_websockets(symbols)
