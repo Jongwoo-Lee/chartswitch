@@ -1,9 +1,8 @@
 import websockets
 import json
 from asyncio import Event
-from config import BINANCE_WS_URL, BINANCE_WS_URL, logger
+from util import BINANCE_WS_URL, BINANCE_WS_URL, logger
 from app import PriceManager
-
 
 async def create_socket(symbols, interval, stop_event: Event, pm: PriceManager):
     try:
@@ -40,6 +39,7 @@ async def connect_socket_and_write(symbols, interval, stop_event: Event, pm: Pri
         async for message in ws:
             if stop_event.is_set():
                 await ws.close()
+                break
             try:
                 data = json.loads(message)
                 pm.update_price(data)

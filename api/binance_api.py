@@ -1,5 +1,5 @@
 import requests
-from config import logger, BINANCE_24HR_TICKER_API
+from util import logger, BINANCE_24HR_TICKER_API
 
 def fetch_top_symbols(n=10):
     response = requests.get(BINANCE_24HR_TICKER_API)

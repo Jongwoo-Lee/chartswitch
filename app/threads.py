@@ -1,6 +1,7 @@
 import threading
 import asyncio
 
+from util import SYMBOL_NUM
 from app import WebsocketManager 
 from api import fetch_top_symbols
 
@@ -13,11 +14,10 @@ def run_websocket(event: threading.Event):
     asyncio.run(websocket_loop())
 
     # Rest of the clean up after websocket thread
-    print("rest of the clean up")
     event.set()
 
 async def websocket_loop():
 
-    symbols = fetch_top_symbols(4)
+    symbols = fetch_top_symbols(SYMBOL_NUM)
     # Start websocket loops
     await WebsocketManager().start_websockets(symbols)

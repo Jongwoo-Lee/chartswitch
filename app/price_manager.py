@@ -1,5 +1,5 @@
 import pandas as pd
-from config import logger
+from util import logger
 from collections import deque
 
 class PriceManager:
@@ -33,7 +33,7 @@ class PriceManager:
             new_series = self.make_price_series(data['data'])
             
             if not self.price_data.empty:
-                self.calculate_price_change(new_series)
+                new_series = self.calculate_price_change(new_series)
             
             self.price_data = pd.concat([self.price_data, new_series], ignore_index=True)
 
@@ -62,9 +62,29 @@ class PriceManager:
         return new_series
 
     def calculate_price_change(self, series: pd.Series):
-        if 'symbol' in series.index and pd.notna(series['symbol']):
+        if 'symbol' in series.index and pd.notna(series['symbol']) and 'close_price' in series.index and pd.notna(series['close_price']):
             symbol = series['symbol']
-            print(symbol)
+            close_price = series['close_price']
+            previous_price = self.previous_prices[symbol]
+            pct_change, abs_pct_change = 0, 0
+
+            if previous_price is not None:
+                pct_change = (close_price - previous_price) / previous_price
+                abs_pct_change = abs(pct_change)
+
+                if len(self.price_deques_100[symbol]) == self.price_deques_100[symbol].maxlen :
+                    self.rolling_sums[symbol] -= self.price_deques_100[symbol][0]
+
+                self.rolling_sums[symbol] += abs_pct_change
+                self.price_deques_100[symbol].append(abs_pct_change)
+
+            self.previous_prices[symbol] = close_price
+            series['pct_change'] = pct_change
+            series['abs_pct_change'] = abs_pct_change
+            series['rolling_sum'] = self.rolling_sums[symbol]
+
+        return series 
+
 
     def compare_most_recent_prices(self):
         if not self.price_data.empty:

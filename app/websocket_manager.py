@@ -2,7 +2,7 @@ import asyncio
 from typing import List
 from api import create_socket
 from app import PriceManager
-from config import logger, INTERVALS
+from util import logger, INTERVALS
 
 class WebsocketManager:
     _instance = None
