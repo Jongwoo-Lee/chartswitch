@@ -3,7 +3,7 @@ import threading
 import time
 
 from util import logger, configure_logging 
-from app import WebsocketManager, start_websocket_thread
+from app import WebsocketManager, WindowManager,start_websocket_thread
 
 websocket_event = threading.Event()
 price_thread_event = threading.Event()
@@ -27,12 +27,10 @@ def main(production_mode = False):
     # Initiate Threads
     start_websocket_thread(websocket_event)
 
-    # Do Some Price Calculation
-    while not websocket_event.is_set():
-        time.sleep(4)
-
+    time.sleep(10)
+    WindowManager().start_window()
+    
     websocket_event.wait()
-
     logger.debug("Websocket threads are closed successfully")
     logger.info("Exiting main...")
 
