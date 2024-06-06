@@ -14,12 +14,6 @@ class PriceManager:
     def __init__(self):
         if not self.__class__._is_initialized:
             logger.debug("Price manager: initializing the price DataFrame.")
-            self.price_data = pd.DataFrame(columns=[
-                'symbol', 'interval', 'event_ts', 'open_ts', 'close_ts', 
-                'open_price', 'close_price', 'high_price', 'low_price', 
-                'is_closed', 'pct_change', 'abs_pct_change', 'rolling_sum'])
-            
-            self.price_data['is_closed'] = self.price_data['is_closed'].astype(bool)
 
             # Initialize state dictionaries
             self.rolling_sums = {}
@@ -31,11 +25,8 @@ class PriceManager:
     def update_price(self, data):
         if 'data' in data and 'k' in data['data']:
             new_series = self.make_price_series(data['data'])
+            new_series = self.calculate_price_change(new_series)
             
-            if not self.price_data.empty:
-                new_series = self.calculate_price_change(new_series)
-            
-            self.price_data = pd.concat([self.price_data, new_series], ignore_index=True)
 
     def make_price_series(self, stream):
         symbol = stream['s']
@@ -85,14 +76,6 @@ class PriceManager:
 
         return series 
 
-
-    def compare_most_recent_prices(self):
-        if not self.price_data.empty:
-            recent_prices = self.price_data.groupby(['symbol', 'interval']).apply(lambda x: x.iloc[-1])
-            return recent_prices
-        else:
-            return pd.DataFrame()  # Return an empty DataFrame if there's no data
-        
     def reset_symbols(self, symbols):
         for symbol in symbols:
             self.rolling_sums[symbol] = 0
@@ -101,15 +84,8 @@ class PriceManager:
 
         return symbols
 
-    def hourly_cleanup(self):
-        # Keeps only the last 'hours' of data for the specified interval.
-        threshold = pd.to_datetime('now') - pd.Timedelta(hours=1)
-        self.price_data = self.price_data[(self.price_data['event_ts'] > threshold) | (self.price_data['interval'] != "1m")]
-
-
     def cleanup(self):
         # Implement cleanup logic here, such as closing connections
-        self.price_data = None
         self.rolling_sums = None
         self.price_deques_100 = None
         self.previous_prices = None
