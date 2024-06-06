@@ -43,7 +43,6 @@ class WebsocketManager:
         
         logger.debug("Cancelled all websockets")
 
-
     def cleanup(self):
         # Implement cleanup logic here, such as closing connections
         self.stop_event.set()
