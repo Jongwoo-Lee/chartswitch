@@ -1,8 +1,8 @@
 import requests
-from util import logger, BINANCE_24HR_TICKER_API
+from util import logger, BINANCE_API_URL, BINANCE_24HR_TICKER
 
 def fetch_top_symbols(n=10):
-    response = requests.get(BINANCE_24HR_TICKER_API)
+    response = requests.get(f"{BINANCE_API_URL}{BINANCE_24HR_TICKER}")
     if response.status_code == 200:
         data = response.json()
         

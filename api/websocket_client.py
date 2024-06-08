@@ -1,7 +1,7 @@
 import websockets
 import json
 from asyncio import Event
-from util import BINANCE_WS_URL, BINANCE_WS_URL, logger
+from util import BINANCE_WS_URL, BINANCE_STREAM_PRICE_ALL, logger
 from app import PriceManager
 
 async def create_socket(symbols, interval, stop_event: Event, pm: PriceManager):
@@ -22,15 +22,14 @@ async def create_socket(symbols, interval, stop_event: Event, pm: PriceManager):
 async def connect_socket_and_write(symbols, interval, stop_event: Event, pm: PriceManager):
     logger.debug(f"Starting asynchronous client for interval: {interval}")
     
-    combined_streams = "/".join([f"{symbol.lower()}@kline_{interval}" for symbol in symbols])
-    socket_url = f"{BINANCE_WS_URL}?streams={combined_streams}"
+    socket_url = f"{BINANCE_WS_URL}{BINANCE_STREAM_PRICE_ALL}"
     
     pm.reset_symbols(symbols)
 
     async with websockets.connect(socket_url) as ws:
         subscribe_message =  {
             "method": "SUBSCRIBE",
-            "params": [f"{symbol.lower()}@kline_{interval}" for symbol in symbols],
+            "params": [BINANCE_STREAM_PRICE_ALL], # [f"{symbol.lower()}@kline_{interval}" for symbol in symbols],
             "id": 1
         }
 
