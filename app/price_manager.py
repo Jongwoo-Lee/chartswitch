@@ -71,6 +71,10 @@ class PriceManager:
             self.previous_prices[symbol] = None
 
         return symbols
+    
+    def top3(self):
+        sorted_symbols = sorted(self.rolling_sums, key=self.rolling_sums.get, reverse=True)
+        return sorted_symbols[:3]
 
     def cleanup(self):
         # Implement cleanup logic here, such as closing connections

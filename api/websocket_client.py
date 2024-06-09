@@ -1,12 +1,12 @@
 import websockets
 import json
 from asyncio import Event
-from util import BINANCE_WS_URL, BINANCE_STREAM_PRICE_ALL, logger
+from util import BINANCE_WS_URL, BINANCE_STREAM_PRICE_ALL, logger, INTERVALS
 from app import PriceManager
 
-async def create_socket(symbols, interval, stop_event: Event, pm: PriceManager):
+async def create_socket(stop_event: Event):
     try:
-        await connect_socket_and_write(symbols, interval, stop_event, pm)
+        await connect_socket_and_write(stop_event)
     
     except websockets.ConnectionClosed as e:
         if e.code == 1000:
@@ -19,17 +19,15 @@ async def create_socket(symbols, interval, stop_event: Event, pm: PriceManager):
         logger.error(f"WebSocket Unexpected Error: {e}") 
         raise
 
-async def connect_socket_and_write(symbols, interval, stop_event: Event, pm: PriceManager):
-    logger.debug(f"Starting asynchronous client for interval: {interval}")
+async def connect_socket_and_write(stop_event: Event):
+    logger.debug(f"Starting asynchronous client for interval: {INTERVALS}")
     
     socket_url = f"{BINANCE_WS_URL}{BINANCE_STREAM_PRICE_ALL}"
     
-    pm.reset_symbols(symbols)
-
     async with websockets.connect(socket_url) as ws:
         subscribe_message =  {
             "method": "SUBSCRIBE",
-            "params": [BINANCE_STREAM_PRICE_ALL], # [f"{symbol.lower()}@kline_{interval}" for symbol in symbols],
+            "params": [BINANCE_STREAM_PRICE_ALL],
             "id": 1
         }
 
@@ -41,10 +39,10 @@ async def connect_socket_and_write(symbols, interval, stop_event: Event, pm: Pri
                 break
             try:
                 data = json.loads(message)
-                pm.update_price(data)
+                PriceManager().update_price(data)
             except json.JSONDecodeError as e:
                 logger.error(f"Websocket JSON Decoding Error: {e}")
                 raise
 
-        logger.debug(f"Closed websocket - {interval} interval")
+        logger.debug(f"Closed websocket - {INTERVALS}")
         

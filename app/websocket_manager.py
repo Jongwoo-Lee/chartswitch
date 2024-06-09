@@ -24,14 +24,14 @@ class WebsocketManager:
             # Set the flag indicating initialization is done
             self.__class__._is_initialized = True  
 
-    async def start_websockets(self, symbols):
+    async def start_websockets(self):
         tasks: List[asyncio.Task] = []
         for interval in INTERVALS:
             logger.debug(f"Creating websockets coroutines for {interval} intervak price updates")
 
             tasks.append(
                 asyncio.create_task(
-                    create_socket(symbols, interval, self.stop_event, PriceManager())
+                    create_socket(self.stop_event)
                 )
             )
         
