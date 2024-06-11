@@ -1,12 +1,7 @@
 import signal
-import threading
-import time
-
 from util import logger, configure_logging 
-from app import WebsocketManager, WindowManager,start_websocket_thread
+from app import WebsocketManager, WindowManager, start_threads
 
-websocket_event = threading.Event()
-price_thread_event = threading.Event()
 
 def signal_handler(sig, frame):
     logger.info(f"Signal {sig} received. Shutting down gracefully...")
@@ -24,13 +19,13 @@ def main(production_mode = False):
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    # Initiate Threads
-    start_websocket_thread(websocket_event)
+    start_threads()
+   
+    try:
+        WindowManager().start_window()
+    except KeyboardInterrupt:
+        print("Interrupted by user")
 
-    time.sleep(10)
-    WindowManager().start_window()
-    
-    websocket_event.wait()
     logger.debug("Websocket threads are closed successfully")
     logger.info("Exiting main...")
 

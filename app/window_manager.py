@@ -20,7 +20,7 @@ class WindowManager:
             self.root.title("Crypto Prices")
             self.labels = {}
 
-            self.__class__._is_initialized = True  
+            self.__class__._is_initialized = True 
 
     # Function to refresh the displayed data
     def refresh_data(self):
