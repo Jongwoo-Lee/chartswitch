@@ -19,12 +19,14 @@ def main(production_mode = False):
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    start_threads()
+    stop_event = start_threads()
    
     try:
         WindowManager().start_window()
     except KeyboardInterrupt:
         print("Interrupted by user")
+
+    stop_event.set()
 
     logger.debug("Websocket threads are closed successfully")
     logger.info("Exiting main...")

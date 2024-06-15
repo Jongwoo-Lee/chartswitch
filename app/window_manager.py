@@ -31,7 +31,7 @@ class WindowManager:
             widget.destroy()
         # Update data
         for row, (key, value) in enumerate(sorted_data):
-            text = f"{key}: {value:.8f}"
+            text = f"{row+1}. {key}:  {value}"
             label = ttk.Label(self.frame, text=text)
             label.grid(row=row, column=0, sticky=tk.W)
     
@@ -50,3 +50,6 @@ class WindowManager:
 
         # Run the application
         self.root.mainloop()
+
+    def cleanup(self):
+        self.root.destroy()

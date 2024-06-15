@@ -50,7 +50,7 @@ class PriceManager:
                 previous_price = self.previous_prices[symbol]
                 pct_change, abs_pct_change = 0, 0
 
-                if previous_price is not None:
+                if previous_price is not None and previous_price > 0:
                     pct_change = (index_price - previous_price) / previous_price
                     abs_pct_change = abs(pct_change)
 

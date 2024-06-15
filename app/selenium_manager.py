@@ -20,6 +20,6 @@ def change_browser_symbol(event: Event):
             driver.get(full_url)
 
             # Simulate changing the URL periodically
-            time.sleep(30)  # Change URL every few seconds
+            time.sleep(60)  # Change URL every few seconds
     finally:
         driver.quit()

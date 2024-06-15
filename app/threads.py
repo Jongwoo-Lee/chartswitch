@@ -1,7 +1,7 @@
 import threading
 import asyncio
 
-from app import WebsocketManager, PriceManager 
+from app import WebsocketManager, PriceManager, WindowManager
 
 def start_threads():
     import api
@@ -13,6 +13,8 @@ def start_threads():
     
     start_websocket_thread(stop_event)
     start_selenium_thread(stop_event)
+
+    return stop_event
 
 def start_websocket_thread(event: threading.Event):
     ws_thread = threading.Thread(target=run_websocket, args=(event,))
@@ -30,6 +32,7 @@ def run_websocket(event: threading.Event):
 
     # Rest of the clean up after websocket thread
     event.set()
+    WindowManager().cleanup()
 
 async def init_wsm():
     # Start websocket loops
