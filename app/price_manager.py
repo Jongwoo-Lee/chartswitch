@@ -1,6 +1,7 @@
 import pandas as pd
 from util import logger
 from collections import deque
+from statistics import stdev, StatisticsError
 
 class PriceManager:
     _instance = None
@@ -19,6 +20,7 @@ class PriceManager:
             self.rolling_sums = {}
             self.price_deques_100 = {}
             self.previous_prices = {}
+            self.stdv = {}
 
             self.__class__._is_initialized = True  # Set the flag indicating initialization is done
     
@@ -59,6 +61,11 @@ class PriceManager:
 
                     self.rolling_sums[symbol] += abs_pct_change
                     self.price_deques_100[symbol].append(abs_pct_change)
+                    if len(self.price_deques_100[symbol]) > 2:
+                        try:
+                            self.stdv[symbol] = stdev(self.price_deques_100[symbol])
+                        except StatisticsError as e:
+                            logger.error(f"Standard Deviation error: {e}")
 
                 self.previous_prices[symbol] = index_price
 
@@ -69,12 +76,13 @@ class PriceManager:
             self.rolling_sums[symbol] = 0
             self.price_deques_100[symbol] = deque(maxlen=100)
             self.previous_prices[symbol] = None
+            self.stdv[symbol] = 0
 
         return symbols
     
-    def top3(self):
+    def top4(self):
         sorted_symbols = sorted(self.rolling_sums, key=self.rolling_sums.get, reverse=True)
-        return sorted_symbols[:3]
+        return sorted_symbols[:4]
 
     def cleanup(self):
         # Implement cleanup logic here, such as closing connections

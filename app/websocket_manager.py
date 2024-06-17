@@ -1,13 +1,11 @@
 import asyncio
 from typing import List
 from api import create_socket
-from app import PriceManager
 from util import logger, INTERVALS
 
 class WebsocketManager:
     _instance = None
     _is_initialized = False  # Flag to check if the instance has been initialized
-    stop_event: asyncio.Event = None
     
     def __new__(cls, *args, **kwargs):
         if not cls._instance:

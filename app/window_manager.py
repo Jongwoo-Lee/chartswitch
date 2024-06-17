@@ -19,23 +19,32 @@ class WindowManager:
             self.root = tk.Tk()
             self.root.title("Crypto Prices")
             self.labels = {}
+            self.root.protocol("WM_DELETE_WINDOW", self.cleanup)
 
             self.__class__._is_initialized = True 
 
     # Function to refresh the displayed data
     def refresh_data(self):
         data = PriceManager().rolling_sums
+        std = PriceManager().stdv
         sorted_data = sorted(data.items(), key=lambda item: item[1], reverse=True)
+        sorted_std = sorted(std.items(), key=lambda item: item[1], reverse=True)
         
-        for widget in self.frame.winfo_children():
-            widget.destroy()
-        # Update data
-        for row, (key, value) in enumerate(sorted_data):
-            text = f"{row+1}. {key}:  {value}"
-            label = ttk.Label(self.frame, text=text)
-            label.grid(row=row, column=0, sticky=tk.W)
-    
-        self.root.after(5000, self.refresh_data)  # Schedule the next refresh
+        if self.root:
+            for widget in self.frame.winfo_children():
+                widget.destroy()
+            # Update data
+            for row, (key, value) in enumerate(sorted_data[:10]):
+                text = f"{row+1}. {key}:  {value}"
+                label = ttk.Label(self.frame, text=text)
+                label.grid(row=row, column=0, sticky=tk.W)
+            
+            for row, (key, value) in enumerate(sorted_std[:10]):
+                text = f"{row+1}. {key}:  {value}"
+                label = ttk.Label(self.frame, text=text)
+                label.grid(row=row, column=1, sticky=tk.W)
+        
+            self.root.after(5000, self.refresh_data)  # Schedule the next refresh
 
 
     # Create labels for each item in the data dictionary
@@ -53,3 +62,5 @@ class WindowManager:
 
     def cleanup(self):
         self.root.destroy()
+        logger.info("Tkinter window closed.")
+        self.root = None

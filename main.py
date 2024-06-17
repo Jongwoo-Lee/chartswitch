@@ -1,13 +1,5 @@
-import signal
 from util import logger, configure_logging 
-from app import WebsocketManager, WindowManager, start_threads
-
-
-def signal_handler(sig, frame):
-    logger.info(f"Signal {sig} received. Shutting down gracefully...")
-
-    WebsocketManager().cleanup()
-
+from app import start_threads
 
 def main(production_mode = False):
     logger.info(production_mode)
@@ -15,20 +7,8 @@ def main(production_mode = False):
 
     logger.info("############## Starting new Chartswitch ##############")
 
-    # Register the cleanup functions to be called on exit
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    start_threads()
 
-    stop_event = start_threads()
-   
-    try:
-        WindowManager().start_window()
-    except KeyboardInterrupt:
-        print("Interrupted by user")
-
-    stop_event.set()
-
-    logger.debug("Websocket threads are closed successfully")
     logger.info("Exiting main...")
 
 if __name__ == "__main__":

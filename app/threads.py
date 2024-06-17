@@ -1,38 +1,56 @@
 import threading
-import asyncio
+import signal
+from util import logger
+from app import WebsocketManager, PriceManager, WindowManager, SeleniumManager
 
-from app import WebsocketManager, PriceManager, WindowManager
+def signal_handler(sig, frame):
+    logger.info(f"Signal {sig} received. Shutting down gracefully...")
+    close_all()
+    
+def close_all():
+    SeleniumManager().cleanup()
+    WindowManager().cleanup()
+    WebsocketManager().cleanup()
 
 def start_threads():
     import api
-
-    stop_event = threading.Event()
+    
+    # Register the cleanup functions to be called on exit
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     symbols = api.fetch_top_symbols()
     PriceManager().reset_symbols(symbols)
     
-    start_websocket_thread(stop_event)
-    start_selenium_thread(stop_event)
+    ws_thread = start_websocket_thread()
+    sl_thread = start_selenium_thread()
 
-    return stop_event
+    # Tkinter has to be in main thread
+    try:
+        WindowManager().start_window()
+    except KeyboardInterrupt:
+        logger.debug("Keyboard Interrupt - Start closing application")
+    
+    sl_thread.join()
+    logger.debug("Selenium thread closed")
+    ws_thread.join()
+    logger.debug("Websocket thread closed")
 
-def start_websocket_thread(event: threading.Event):
-    ws_thread = threading.Thread(target=run_websocket, args=(event,))
+
+def start_websocket_thread():
+    ws_thread = threading.Thread(target=run_async_websocket)
     ws_thread.start()
     return ws_thread
 
-def start_selenium_thread(event: threading.Event):
-    from app import change_browser_symbol
-    sl_thread = threading.Thread(target=change_browser_symbol, args=(event,))
+def start_selenium_thread():
+    sm = SeleniumManager()
+    sl_thread = threading.Thread(target=sm.change_browser_symbol)
     sl_thread.start()
     return sl_thread
 
-def run_websocket(event: threading.Event):
+def run_async_websocket():
+    import asyncio
     asyncio.run(init_wsm())
-
-    # Rest of the clean up after websocket thread
-    event.set()
-    WindowManager().cleanup()
 
 async def init_wsm():
     # Start websocket loops
